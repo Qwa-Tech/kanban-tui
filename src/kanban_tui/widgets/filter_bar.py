@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from textual import on
 from textual.binding import Binding
@@ -9,6 +9,7 @@ from kanban_tui.classes.task import Task
 
 if TYPE_CHECKING:
     from kanban_tui.app import KanbanTui
+    from kanban_tui.widgets.board_widgets import KanbanBoard
 
 
 class FilterBar(Horizontal):
@@ -43,7 +44,12 @@ class FilterBar(Horizontal):
     async def update_filter(self, event: Input.Changed) -> None:
         query = event.value.strip().casefold()
         self.app.filter_query = query
-        await self.app.get_screen("board").query_one("KanbanBoard").refresh_columns()
+        board = cast(
+            "KanbanBoard",
+            self.app.get_screen("board").query_one("KanbanBoard"),
+        )
+        board.border_subtitle = "Filter active" if query else ""
+        await board.refresh_columns()
 
     def action_close(self) -> None:
         self.add_class("-hidden")
